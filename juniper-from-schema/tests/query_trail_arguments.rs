@@ -35,6 +35,7 @@ graphql_schema! {
             stringArg: String!
             nullableArg: String
             nullableArg2: String
+            nullableArg3: String
             intArg: Int!
             floatArg: Float!
             boolArg: Boolean!
@@ -85,52 +86,53 @@ impl QueryFields for Query {
         trail: &QueryTrail<'_, A, Walked>,
     ) -> FieldResult<A> {
         if let Some(c) = trail.b().c().walk() {
-            assert_eq!("foo".to_string(), c.field_with_arg_args().string_arg());
-            assert_eq!(None, c.field_with_arg_args().nullable_arg());
+            assert_eq!(Some("foo".to_string()), c.field_with_arg_args().string_arg());
+            assert_eq!(Some(None), c.field_with_arg_args().nullable_arg());
             assert_eq!(
-                Some("bar".to_string()),
+                Some(Some("bar".to_string())),
                 c.field_with_arg_args().nullable_arg2()
             );
-            assert_eq!(1, c.field_with_arg_args().int_arg());
-            assert_eq!("2.5", c.field_with_arg_args().float_arg().to_string());
-            assert_eq!(false, c.field_with_arg_args().bool_arg());
-            assert_eq!(vec![1, 2, 3], c.field_with_arg_args().list_arg());
-            assert_eq!(Color::Red, c.field_with_arg_args().enum_arg());
+            assert_eq!(None, c.field_with_arg_args().nullable_arg3());
+            assert_eq!(Some(1), c.field_with_arg_args().int_arg());
+            assert_eq!("2.5", c.field_with_arg_args().float_arg().unwrap().to_string());
+            assert_eq!(Some(false), c.field_with_arg_args().bool_arg());
+            assert_eq!(Some(vec![1, 2, 3]), c.field_with_arg_args().list_arg());
+            assert_eq!(Some(Color::Red), c.field_with_arg_args().enum_arg());
             assert_eq!(
                 "baz".to_string(),
-                c.field_with_arg_args().object_arg().value
+                c.field_with_arg_args().object_arg().unwrap().value
             );
             assert_eq!(
-                Cursor("cursor-value".to_string()),
+                Some(Cursor("cursor-value".to_string())),
                 c.field_with_arg_args().cursor_arg()
             );
-            assert_eq!(ID::new("id-value"), c.field_with_arg_args().id_arg());
+            assert_eq!(Some(ID::new("id-value")), c.field_with_arg_args().id_arg());
             assert_eq!(
-                Url::parse("https://example.net").unwrap(),
+                Some(Url::parse("https://example.net").unwrap()),
                 c.field_with_arg_args().url_arg()
             );
             assert_eq!(
-                Uuid::parse_str("46ebd0ee-0e6d-43c9-b90d-ccc35a913f3e").unwrap(),
+                Some(Uuid::parse_str("46ebd0ee-0e6d-43c9-b90d-ccc35a913f3e").unwrap()),
                 c.field_with_arg_args().uuid_arg()
             );
             assert_eq!(
-                NaiveDate::parse_from_str("2019-01-01", "%Y-%m-%d").unwrap(),
+                Some(NaiveDate::parse_from_str("2019-01-01", "%Y-%m-%d").unwrap()),
                 c.field_with_arg_args().date_arg()
             );
             assert_eq!(
                 DateTime::parse_from_rfc3339("1996-12-19T16:39:57-08:00").unwrap(),
-                c.field_with_arg_args().date_time_arg()
+                c.field_with_arg_args().date_time_arg().unwrap()
             );
             assert_eq!(
-                "value set in schema".to_string(),
+                Some("value set in schema".to_string()),
                 c.field_with_arg_args().default_arg()
             );
             assert_eq!(
-                "value set in query".to_string(),
+                Some("value set in query".to_string()),
                 c.field_with_arg_args().default_arg2()
             );
             assert_eq!(
-                "qux".to_string(),
+                Some("qux".to_string()),
                 c.field_with_arg_returning_type_args().string_arg()
             );
         }
@@ -170,6 +172,7 @@ impl CFields for C {
         &self,
         executor: &Executor<'_, Context>,
         _: String,
+        _: Option<String>,
         _: Option<String>,
         _: Option<String>,
         _: i32,

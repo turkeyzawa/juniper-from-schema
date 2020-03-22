@@ -634,7 +634,7 @@ impl<'pass, 'doc> QueryTrailCodeGenPass<'pass, 'doc> {
         if let Some(default_value) = default_value {
             quote! {
                 #[allow(missing_docs)]
-                pub fn #ident(&self) -> #field_type {
+                pub fn #ident(&self) -> Option<#field_type> {
                     use juniper::LookAheadMethods;
 
                     // these `expect`s are fine since these methods you can only obtain
@@ -652,16 +652,16 @@ impl<'pass, 'doc> QueryTrailCodeGenPass<'pass, 'doc> {
 
                     if let Some(arg) = arg {
                         let value = arg.value();
-                        FromLookAheadValue::<#field_type>::from(value)
+                        Some(FromLookAheadValue::<#field_type>::from(value))
                     } else {
-                        #default_value
+                        Some(#default_value)
                     }
                 }
             }
         } else {
             quote! {
                 #[allow(missing_docs)]
-                pub fn #ident(&self) -> #field_type {
+                pub fn #ident(&self) -> Option<#field_type> {
                     use juniper::LookAheadMethods;
 
                     // these `expect`s are fine since these methods you can only obtain
@@ -673,9 +673,14 @@ impl<'pass, 'doc> QueryTrailCodeGenPass<'pass, 'doc> {
                         .select_child(#field_name)
                         .expect("select child");
 
-                    let arg = lh.arguments().iter().find(|arg| { arg.name() == #name }).expect("no argument with name");
-                    let value = arg.value();
-                    FromLookAheadValue::<#field_type>::from(value)
+                    let arg = lh.arguments().iter().find(|arg| { arg.name() == #name });
+
+                    if let Some(arg) = arg {
+                        let value = arg.value();
+                        Some(FromLookAheadValue::<#field_type>::from(value))
+                    } else {
+                        None
+                    }
                 }
             }
         }

@@ -1228,7 +1228,7 @@
 //!         //
 //!         // Notice that it automatically converts the incoming value to
 //!         // a `DateTime<Utc>`.
-//!         let _: DateTime<Utc> = args.active_since();
+//!         let _: Option<DateTime<Utc>> = args.active_since();
 //!
 //!         # unimplemented!()
 //!         // ...
